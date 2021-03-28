@@ -1,22 +1,19 @@
-/* Sweep
- Lucas Berbesson for La Fabrique DIY
-  <https://www.youtube.com/channel/UCV8D6u7_jkuGf_iUvNzXpmg/videos>
-
- modified 19 Jan 2017
- by Lucas Berbesson
-*/
-
 #include <Servo.h>
 
 Servo myservo;  // create servo object to control a servo
 
-int servo_max_angle = 90; // max angle of the flag
-int servo_min_angle = 30; // min angle of the flag
+int servo_max_angle = 75; // max angle of the flag
+int servo_min_angle = 00; // min angle of the flag
+int have_not_looped = true;
 
-int flag_left = servo_max_angle + 5; 
-int flag_right = servo_min_angle - 5;
+int current_pos;
 
-int infusion_time_ms = 90000;
+//int steps = 5;
+//int steps_deg = ( servo_max_angle - servo_min_angle ) / steps;
+
+int flag_up = servo_max_angle + 5; 
+int flag_down = servo_max_angle - 15;
+
 int count = 0;
 
 void setup() {
@@ -24,21 +21,43 @@ void setup() {
 }
 
 void loop() {
-  //Infusing the tea bag
-  myservo.write(servo_min_angle);
-  delay(infusion_time_ms);
-  myservo.write(servo_max_angle);
-  delay(2000);
-  //shaking the tea bag
-  for (count = 1; count <= 25; count += 1) {
-    delay(150);
-    myservo.write(flag_left);              
-    delay(150);      
-    myservo.write(flag_right);  
-    if ((count % 5) == 0 ) {
-      delay(2000);                  
+  
+  if( have_not_looped ) {
+    //Let the tea bag decend into the water
+    myservo.write(servo_min_angle);
+    current_pos = servo_min_angle;
+    
+    //Wait for it... (each iteration adds 30sec to the "down time")
+    for (int i = 0; i < 5; i++) {
+      delay( 30000 );
     }
+    
+    //Rise slowly (The servo didn't have the strength to lift the teabag with this code)
+    // for (int i = 0; i < steps; i++) { 
+    //   current_pos += steps_deg;
+    //   myservo.write( current_pos );
+    //   delay( 25 ); 
+    // }
+    
+    //Rise fast
+    myservo.write( servo_max_angle );
+    
+    //Shake it
+    for (int i = 0; i < 50; i++) {
+      
+      myservo.write(flag_down);
+      delay(150);
+      
+      myservo.write(flag_up);
+      delay(150);
+      
+      if ((i % 5) == 0 ) {
+        delay(1500);                  
+      }
+    }
+    myservo.write(servo_max_angle);
+    have_not_looped = false;
   }
-    //wait until you unplug the machine
-    delay(160000);
+  //wait until you unplug the machine
+  delay(1800000);
 }
